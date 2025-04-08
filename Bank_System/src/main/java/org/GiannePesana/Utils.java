@@ -49,7 +49,6 @@ public class Utils {
     }
 
     public static String invalidInputMessage() {
-        clearConsole();
         return "Invalid Input!";
     }
 

@@ -67,6 +67,7 @@ public class UserController {
                 usernameAuth = true;
             } else {
                 System.out.println(UserService.getUserStatusMessage(accountStatus));
+                Utils.threadSleep(2000);
             }
         }
 
@@ -94,6 +95,7 @@ public class UserController {
         if (!pinAuth) {
             System.out.println("Too many failed attempts. Account Suspended. \nExiting...");
             user.setStatus(UserService.statusIntToString(UserService.suspended));
+            UserService.updateUserData(user);
             Utils.threadSleep(2000);
         }
 
@@ -136,7 +138,10 @@ public class UserController {
                     Utils.clearConsole();
                     isRunning = false;
                 }
-                default -> System.out.println(Utils.invalidInputMessage());
+                default -> {
+                    System.out.println(Utils.invalidInputMessage());
+                    Utils.threadSleep();
+                }
             }
         }
     }
@@ -168,7 +173,7 @@ public class UserController {
         UserService.updateUserData(user);
         TransactionsController.saveTransaction(TransactionsController.deposit, user, depositAmount);
         System.out.println(depositAmount + " has been deposited to your account.");
-        Utils.threadSleep(2000);
+        Utils.threadSleep(3000);
     }
 
     private static void withdraw() {

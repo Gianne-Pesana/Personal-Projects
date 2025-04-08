@@ -98,7 +98,6 @@ public class UserService {
 
                 if (parts[2].equals(user.getUserID().trim())) {
                     String newUserData = user.getUsername() + "|" + user.getPin() + "|" + user.getUserID() + "|" + user.getBalance() + "|" + user.getStatus();
-                    System.out.println(newUserData);
                     outFile.append(newUserData + "\n");
                 } else {
                     outFile.append(line + "\n");
