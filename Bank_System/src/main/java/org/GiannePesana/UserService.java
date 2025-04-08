@@ -3,7 +3,7 @@ package org.GiannePesana;
 import java.io.*;
 import java.util.*;
 
-public class UserService {
+public abstract class UserService {
 
     protected static final int invalid = -1;
     protected static final int active = 0;
@@ -39,7 +39,8 @@ public class UserService {
     }
 
     static UserAccount findAccount(String targetUsername) {
-        String username, pin, userID, status;
+        String firstName, lastName, username, pin, userID, status;
+        int age;
         double balance;
 
         try (Scanner accAuth = new Scanner(new FileReader("data/accounts/users.txt"))) {
@@ -47,16 +48,18 @@ public class UserService {
                 String line = accAuth.nextLine().trim(); // Get the full line
                 String[] parts = line.split("\\|");
 
-                if (parts.length < 5) continue; // Skip malformed lines
-
-                username = parts[0];
-                pin = parts[1];
-                userID = parts[2];
-                balance = Double.parseDouble(parts[3]);
-                status = parts[4].trim();
+                if (parts.length < 8) continue; // Skip malformed lines
+                firstName = parts[0];
+                lastName = parts[1];
+                age = Integer.parseInt(parts[2]);
+                username = parts[3];
+                pin = parts[4];
+                userID = parts[5];
+                balance = Double.parseDouble(parts[6]);
+                status = parts[7].trim();
 
                 if (username.equals(targetUsername)) {
-                    return new UserAccount(username, pin, userID, balance, status);
+                    return new UserAccount(firstName, lastName, age, username, pin, userID, balance, status);
                 }
             }
         } catch (FileNotFoundException e) {
@@ -93,13 +96,18 @@ public class UserService {
                 String line = inTempFile.nextLine();
                 String[] parts = line.split("\\|");
 
-                if (parts[2].equals(user.getUserID().trim())) {
-                    String newUserData = user.getUsername() + "|" + user.getPin() + "|" + user.getUserID() + "|" + user.getBalance() + "|" + user.getStatus();
+                if (parts[5].equals(user.getUserID().trim())) {
+                    String newUserData =
+                            user.getFirstName() + "|" + user.getLastName() + "|" +
+                            user.getAge() + "|" + user.getUsername() + "|" +
+                            user.getPin() + "|" + user.getUserID() + "|" +
+                            user.getBalance() + "|" + user.getStatus();
                     outFile.append(newUserData + "\n");
                 } else {
                     outFile.append(line + "\n");
                 }
             }
+            inTempFile.close();
             outFile.close();
 
             // clears the temp file

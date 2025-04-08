@@ -3,9 +3,9 @@ package org.GiannePesana;
 import java.io.*;
 import java.util.*;
 
-public class UserController {
+public abstract class UserController {
 
-    static UserAccount user;
+    private static UserAccount user;
 
     private static String titleHeader =
             "                                                      \n" +
@@ -105,7 +105,7 @@ public class UserController {
             Utils.clearConsole();
             String menu =
                     titleHeader +
-                            "Welcome " + user.getUsername() + "!\n" +
+                            "Welcome, " + user.getFirstName() + " " + user.getLastName() + "!\n" +
                             "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n" +
                             "1.) View balance\n" +
                             "2.) Deposit\n" +
@@ -144,17 +144,29 @@ public class UserController {
     }
 
     private static void viewBalance() {
-        System.out.println("Your current balance is: " + user.getBalance());
+        System.out.println("Your current balance is: $" + user.getBalance());
     }
 
     private static void deposit() {
-        double depositAmount;
+        double depositAmount = 0;
         do {
+            Utils.clearConsole();
+            System.out.println("======================\n" +
+                                "Deposit\n" +
+                                "======================");
             viewBalance();
             System.out.println(); // for formatting
             System.out.println("(Type -1 to cancel)");
             System.out.print("Enter amount to deposit: ");
             Scanner scanner = new Scanner(System.in);
+
+            // Check if input is actually a number
+            if (!scanner.hasNextDouble()) {
+                System.out.println("Invalid input. Please enter a numeric value.");
+                scanner.next(); // Clear invalid input
+                Utils.threadSleep();
+                continue;
+            }
 
             depositAmount = scanner.nextDouble();
             if (depositAmount == -1) return;
@@ -162,18 +174,81 @@ public class UserController {
             if (depositAmount <= 0) {
                 System.out.println("Invalid Amount!");
                 Utils.threadSleep();
-                Utils.clearConsole();
             }
         } while (depositAmount <= 0);
 
-        user.setBalance(user.getBalance() + depositAmount);
+        double updatedBalance = user.getBalance() + depositAmount;
+        user.setBalance(updatedBalance);
+
         UserService.updateUserData(user);
         TransactionsController.saveTransaction(TransactionsController.deposit, user, depositAmount);
-        System.out.println(depositAmount + " has been deposited to your account.");
-        Utils.threadSleep(3000);
+
+        System.out.println();
+        System.out.println(
+                "$" + String.format("%,.2f ", depositAmount) +
+                "has been deposited to your account."
+        );
+        Utils.threadSleep();
     }
 
-    private static void withdraw() {
 
+
+    private static void withdraw() {
+        double withdrawAmount = 0;
+
+
+        while (true) {
+            Utils.clearConsole();
+            System.out.println("======================\n" +
+                                "Withdraw\n" +
+                                "======================");
+            viewBalance();
+            System.out.println(); // for formatting
+            System.out.println("(Type -1 to cancel)");
+            System.out.print("Enter amount to withdraw: ");
+            Scanner scanner = new Scanner(System.in);
+
+            // Check if input is actually a number
+            if (!scanner.hasNextDouble()) {
+                System.out.println("Invalid input. Please enter a numeric value.");
+                scanner.next(); // Clear invalid input
+                Utils.threadSleep();
+                continue;
+            }
+
+            withdrawAmount = scanner.nextDouble();
+
+            if (withdrawAmount == -1) {
+                return;
+            }
+
+            if (withdrawAmount > user.getBalance()) {
+                System.out.println("Insufficient balance!");
+                Utils.threadSleep();
+                continue;
+            }
+
+            if (withdrawAmount <= 0) {
+                System.out.println("Invalid amount.");
+                Utils.threadSleep();
+                continue;
+            }
+
+            break;
+        }
+
+        double updatedBalance = user.getBalance() - withdrawAmount;
+        user.setBalance(updatedBalance);
+
+        UserService.updateUserData(user);
+        TransactionsController.saveTransaction(TransactionsController.withdraw, user, withdrawAmount);
+
+        System.out.println();
+        System.out.println(
+                "$" + String.format("%,.2f ", withdrawAmount) +
+                "has been withdrawn to your account."
+        );
+
+        Utils.threadSleep();
     }
 }

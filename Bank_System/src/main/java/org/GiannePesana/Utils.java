@@ -4,7 +4,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 import java.time.*;
 
-public class Utils {
+public abstract class Utils {
     public static String sentinelCancel = "cancel";
 
 

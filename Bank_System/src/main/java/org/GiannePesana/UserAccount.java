@@ -1,6 +1,11 @@
 package org.GiannePesana;
 
+import javax.management.RuntimeErrorException;
+
 public class UserAccount extends Account{
+    private String firstName;
+    private String lastName;
+    int age;
     private String pin;
     private String userID;
     private Double balance;
@@ -11,19 +16,45 @@ public class UserAccount extends Account{
     public static String pending = "pending";
     public static String suspended = "suspended";
 
-    public UserAccount(String pin, String userID, Double balance, String status) {
-        this.pin = pin;
+    public UserAccount() {}
+
+    public UserAccount(String firstName, String lastName, int age, String username, String pin, String userID, Double balance, String status) {
+        super(username);
+        this.firstName = Utils.formatString(firstName);
+        this.lastName = Utils.formatString(lastName);
+        this.age = age;
         this.userID = userID;
+        this.pin = pin;
         this.balance = balance;
         this.status = status;
     }
 
-    public UserAccount(String username, String pin, String userID, Double balance, String status) {
-        super(username);
-        this.pin = pin;
-        this.userID = userID;
-        this.balance = balance;
-        this.status = status;
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = Utils.formatString(firstName);
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = Utils.formatString(lastName);
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        if (age > 18) {
+            this.age = age;
+        } else {
+            System.out.println("Internal error: Invalid age.");
+        }
     }
 
     public String getPin() {

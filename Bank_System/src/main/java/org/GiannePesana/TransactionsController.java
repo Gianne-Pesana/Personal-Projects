@@ -3,7 +3,7 @@ package org.GiannePesana;
 import java.io.*;
 import java.util.*;
 
-public class TransactionsController {
+public abstract class TransactionsController {
     public static String deposit = "deposit";
     public static String withdraw = "withdraw";
 
@@ -16,5 +16,18 @@ public class TransactionsController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    static String generateTransactionID(String transactionType) {
+        long timestamp = System.currentTimeMillis() / 1000;
+        Random random = new Random();
+        int randomNumber = random.nextInt(300);
+
+        return String.format(
+                "TX-%s-%d-%03d",
+                transactionType.equals(deposit) ? "DPS" : "WD",
+                timestamp,
+                randomNumber
+                );
     }
 }
