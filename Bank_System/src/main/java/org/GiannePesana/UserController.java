@@ -19,7 +19,7 @@ public class UserController {
                     " `-----'`-----'     `------'  `--`--'`--''--'`--'`--' \n" +
                     "======================================================\n\n";
 
-    public static void handleLoginPage() {
+    public static void authPage() {
         String menu =
                 titleHeader +
                 "Choose operation:\n" +
@@ -34,18 +34,73 @@ public class UserController {
         switch (choice) {
             case "1", "Login" -> {
                 Utils.clearConsole();
-                userLandingPage();
+                userLogin();
             }
             default -> System.out.println(Utils.invalidInputMessage());
         }
     }
 
+    private static void userLogin() {
+        Scanner scanner = new Scanner(System.in);
+        boolean usernameAuth = false;
+        boolean pinAuth = false;
+        int pinAttempts = 3;
+
+        String inputUsername = "";
+        String inputPin = "";
+        String targetPin = "";
+
+        // username validation
+        while(!usernameAuth) {
+            Utils.clearConsole();
+            System.out.println(titleHeader);
+            System.out.print("Enter your username: ");
+            inputUsername = scanner.nextLine();
+            // handle status flags
+            int accountStatus = UserService.authenticateUsername(inputUsername);
+
+            if (accountStatus == UserService.suspended) {
+                System.out.println(UserService.getUserStatusMessage(accountStatus));
+                Utils.threadSleep(2000);
+                return;
+            } else if (accountStatus == UserService.active) {
+                usernameAuth = true;
+            } else {
+                System.out.println(UserService.getUserStatusMessage(accountStatus));
+            }
+        }
+
+        user = UserService.findAccount(inputUsername);
+        targetPin = user.getPin();
+
+        // pin validation
+        while (pinAttempts > 0) {
+            Utils.clearConsole();
+            System.out.println(titleHeader);
+            System.out.print("Enter your PIN: ");
+            inputPin = scanner.nextLine();
+
+            if(inputPin.equals(targetPin)) {
+                pinAuth = true;
+                break;
+            }
+
+            if (--pinAttempts > 0) {
+                System.out.println("Invalid PIN. Attempts left: " + pinAttempts);
+            }
+            Utils.threadSleep();
+        }
+
+        if (!pinAuth) {
+            System.out.println("Too many failed attempts. Account Suspended. \nExiting...");
+            user.setStatus(UserService.statusIntToString(UserService.suspended));
+            Utils.threadSleep(2000);
+        }
+
+        if (usernameAuth && pinAuth) userLandingPage();
+    }
+
     private static void userLandingPage() {
-        user = authenticateUser();
-        if(user == null) return; // ends the program
-
-
-
         boolean isRunning = true;
         while (isRunning) {
             Utils.clearConsole();
@@ -109,10 +164,8 @@ public class UserController {
             }
         } while (depositAmount <= 0);
 
-        System.out.println("gawas");
-
         user.setBalance(user.getBalance() + depositAmount);
-        updateUserData();
+        UserService.updateUserData(user);
         TransactionsController.saveTransaction(TransactionsController.deposit, user, depositAmount);
         System.out.println(depositAmount + " has been deposited to your account.");
         Utils.threadSleep(2000);
@@ -120,137 +173,5 @@ public class UserController {
 
     private static void withdraw() {
 
-    }
-
-    private static void updateUserData() {
-        String dirPath = "data\\accounts\\";
-        // copy user data to temp file
-        try {
-            Scanner inFile = new Scanner(new FileReader(dirPath + "users.txt"));
-            FileWriter outTempFile = new FileWriter(dirPath + "temp.txt");
-
-            while(inFile.hasNextLine()) {
-                String line = inFile.nextLine();
-                outTempFile.append(line + "\n");
-            }
-            outTempFile.close();
-            inFile.close();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("File not found: " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException("IO Exception occurred: " + e.getMessage(), e);
-        }
-
-        try {
-            Scanner inTempFile = new Scanner(new FileReader(dirPath + "temp.txt"));
-            FileWriter outFile = new FileWriter(dirPath + "users.txt");
-            int i = 0;
-            // use userID so that it will still work even if username is changed
-            while (inTempFile.hasNextLine()) {
-                String line = inTempFile.nextLine();
-                String[] parts = line.split("\\|");
-
-                if (parts[2].equals(user.getUserID().trim())) {
-                    String newUserData = user.getUsername() + "|" + user.getPin() + "|" + user.getUserID() + "|" + user.getBalance() + "|" + user.getStatus();
-                    System.out.println(newUserData);
-                    outFile.append(newUserData + "\n");
-                } else {
-                    outFile.append(line + "\n");
-                }
-            }
-            outFile.close();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("File not found: " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException("IO Exception occurred: " + e.getMessage(), e);
-        }
-    }
-
-    private static UserAccount authenticateUser() {
-        String inputUsername;
-        String inputPin;
-        int pinAttempts = 3;
-        Scanner scanner = new Scanner(System.in);
-
-        boolean usernameAuth = false;
-        boolean pinAuth = false;
-
-        UserAccount userAuth = null;
-        while (!usernameAuth) {
-            Utils.clearConsole();
-            System.out.println(titleHeader);
-            System.out.print("Enter your username: ");
-            inputUsername = scanner.nextLine();
-
-            userAuth = findAccount(inputUsername);
-            if (userAuth != null) {
-                usernameAuth = true;
-            } else {
-                System.out.println("Username not found!");
-                Utils.threadSleep();
-            }
-        }
-
-        while(!pinAuth && usernameAuth && pinAttempts > 0) {
-            Utils.clearConsole();
-            System.out.println(titleHeader);
-            System.out.print("Enter your PIN: ");
-            inputPin = scanner.nextLine();
-
-            if(inputPin.equals(userAuth.getPin())) {
-                pinAuth = true;
-                break;
-            }
-            if (!pinAuth) {
-                --pinAttempts;
-                if (pinAttempts > 0) {
-                    System.out.println("Invalid PIN. Attempts left: " + pinAttempts);
-                }
-                Utils.threadSleep();
-            }
-        }
-
-        // check for max allowed attempts, then return to main menu
-        if(!pinAuth) {
-            userAuth.setStatus(UserAccount.suspended);
-            System.out.println("Too many failed attempts. Exiting ...");
-            Utils.threadSleep();
-            return null;
-        }
-
-        if(!((userAuth.getStatus()).equals(UserAccount.active))) {
-            System.out.println("Account is inactive. Contact administrator.");
-            Utils.threadSleep();
-            return null;
-        }
-
-        return userAuth;
-    }
-
-    private static UserAccount findAccount(String targetUsername) {
-        String username, pin, userID, status;
-        double balance;
-
-        try (Scanner accAuth = new Scanner(new FileReader("data/accounts/users.txt"))) {
-            while (accAuth.hasNextLine()) {
-                String line = accAuth.nextLine().trim(); // Get the full line
-                String[] parts = line.split("\\|");
-
-                if (parts.length < 5) continue; // Skip malformed lines
-
-                username = parts[0];
-                pin = parts[1];
-                userID = parts[2];
-                balance = Double.parseDouble(parts[3]);
-                status = parts[4].trim();
-
-                if (username.equals(targetUsername)) {
-                    return new UserAccount(username, pin, userID, balance, status);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("Error 404, File not found");
-        }
-        return null;
     }
 }

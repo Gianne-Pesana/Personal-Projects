@@ -6,6 +6,6 @@ public class Main {
 //            // admin controls
 //        }
 
-        UserController.handleLoginPage();
+        UserController.authPage();
     }
 }
