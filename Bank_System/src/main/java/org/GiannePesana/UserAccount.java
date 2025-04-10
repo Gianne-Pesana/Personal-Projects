@@ -5,7 +5,7 @@ import javax.management.RuntimeErrorException;
 public class UserAccount extends Account{
     private String firstName;
     private String lastName;
-    int age;
+    private int age;
     private String pin;
     private String userID;
     private Double balance;

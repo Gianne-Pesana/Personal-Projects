@@ -10,6 +10,8 @@ public abstract class UserService {
     protected static final int pending = 1;
     protected static final int suspended = 2;
 
+    private static String dirPath = "data\\accounts\\";
+
     // find and check account status
     static int authenticateUsername(String username) {
         UserAccount user = findAccount(username);
@@ -69,7 +71,7 @@ public abstract class UserService {
     }
 
     static void updateUserData(UserAccount user) {
-        String dirPath = "data\\accounts\\";
+
         // copy user data to temp file
         try {
             Scanner inFile = new Scanner(new FileReader(dirPath + "users.txt"));
@@ -119,4 +121,58 @@ public abstract class UserService {
             throw new RuntimeException("IO Exception occurred: " + e.getMessage(), e);
         }
     }
+
+    static boolean equalSentinel(double value) {
+        return value == -1;
+    }
+
+    static boolean equalSentinel(String value) {
+        return value.equals("-1");
+    }
+
+    static boolean usernameExists(String username) {
+        UserAccount user = findAccount(username);
+        return (user != null);
+    }
+
+    static void createAccount(UserAccount user) {
+        try {
+            FileWriter outFile = new FileWriter(dirPath + "users.txt", true);
+            String data =
+                    user.getFirstName() + "|" + user.getLastName() + "|" +
+                    user.getAge() + "|" + user.getUsername() + "|" +
+                    user.getPin() + "|" + user.getUserID() + "|" +
+                    user.getBalance() + "|" + user.getStatus();
+            outFile.append(data + "\n");
+            outFile.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static String generateUserID() {
+        String lastUserID = "0000"; // default if no user exists
+        try {
+            Scanner inFile = new Scanner(new FileReader(dirPath + "users.txt"));
+            while (inFile.hasNextLine()) {
+                String[] parts = inFile.nextLine().split("\\|");
+                if (parts.length < 8) continue;
+
+                String userID = parts[5];
+                if (Integer.parseInt(userID) > Integer.parseInt(lastUserID)) {
+                    lastUserID = userID;
+                }
+            }
+
+            int lastUserIDInt = Integer.parseInt(lastUserID);
+            int generatedUserIDInt = lastUserIDInt + 1;
+            inFile.close();
+            // Format to 4-digit ID like 0001, 0234, etc.
+            return String.format("%04d", generatedUserIDInt);
+
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

@@ -1,6 +1,5 @@
 package org.GiannePesana;
 
-import java.io.*;
 import java.util.*;
 
 public abstract class UserController {
@@ -21,17 +20,21 @@ public abstract class UserController {
                 titleHeader +
                 "Choose operation:\n" +
                 "1.) Login\n" +
-                "2.) Create bank account\n\n" +
+                "2.) Register\n\n" +
                 "Enter your choice: ";
         Utils.clearConsole();
         System.out.print(menu);
 
         Scanner scanner = new Scanner(System.in);
-        String choice = scanner.next();
+        String choice = scanner.next().toLowerCase();
         switch (choice) {
-            case "1", "Login" -> {
+            case "1", "login" -> {
                 Utils.clearConsole();
                 userLogin();
+            }
+            case "2", "register" -> {
+                Utils.clearConsole();
+                userRegister();
             }
             default -> System.out.println(Utils.invalidInputMessage());
         }
@@ -189,6 +192,10 @@ public abstract class UserController {
                 "has been deposited to your account."
         );
         Utils.threadSleep();
+
+        Utils.clearConsole();
+        TransactionsController.showReceipt();
+        Utils.pressAnyKeyToContinue();
     }
 
 
@@ -250,5 +257,142 @@ public abstract class UserController {
         );
 
         Utils.threadSleep();
+
+        Utils.clearConsole();
+        TransactionsController.showReceipt();
+        Utils.pressAnyKeyToContinue();
+    }
+
+    private static void userRegister() {
+        Scanner scanner = new Scanner(System.in);
+        String firstName = "";
+        String lastName = "";
+        String ageStr = "";
+        int age = 0;
+        String username = "";
+        String pin;
+
+        while (true) {
+            Utils.clearConsole();
+            if (!firstName.isEmpty())
+                System.out.println("Enter First Name: " + firstName);
+            if (!lastName.isEmpty())
+                System.out.println("Enter Last Name: " + lastName);
+            if (!ageStr.isEmpty())
+                System.out.println("Enter your age: " + age);
+            if (!username.isEmpty())
+                System.out.println("Enter username: " + username);
+
+            // validate first name
+            if (firstName.isEmpty()) {
+                System.out.print("Enter First Name: ");
+                firstName = scanner.nextLine();
+
+                if (UserService.equalSentinel(firstName)) return;
+                if (!firstName.matches("[a-zA-Z]+")) {
+                    System.out.println("Invalid name!");
+                    firstName = "";
+                    Utils.threadSleep();
+                    Utils.clearConsole();
+                    continue;
+                }
+            }
+
+            // validate last name
+            if (lastName.isEmpty()) {
+                System.out.print("Enter Last Name: ");
+                lastName = scanner.nextLine();
+
+                if (UserService.equalSentinel(lastName)) return;
+
+                if (!lastName.matches("[a-zA-Z]+")) {
+                    System.out.println("Invalid name!");
+                    lastName = "";
+                    Utils.threadSleep();
+                    Utils.clearConsole();
+                    continue;
+                }
+            }
+
+            // validate age
+            if (ageStr.isEmpty()) {
+                System.out.print("Enter Age: ");
+                ageStr = scanner.nextLine();
+                try {
+                    age = Integer.parseInt(ageStr);
+
+                    if (UserService.equalSentinel(ageStr)) return;
+
+                    if (age < 18) {
+                        System.out.println("Age must be 18 or above.");
+                        ageStr = "";
+                        Utils.threadSleep(2000);
+                        Utils.clearConsole();
+                        continue;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid Input! Please enter a number.");
+                    ageStr = "";
+                    Utils.threadSleep();
+                    Utils.clearConsole();
+                    continue;
+                }
+            }
+
+            // validate username
+            if (username.isEmpty()) {
+                System.out.print("Enter Username: ");
+                username = scanner.nextLine();
+                if (UserService.equalSentinel(username)) return;
+
+                if (username.isEmpty()) {
+                    System.out.println("Invalid Input! Please enter a value.");
+                    username = "";
+                    Utils.threadSleep(2000);
+                    Utils.clearConsole();
+                    continue;
+                }
+
+                if (UserService.usernameExists(username)) {
+                    System.out.println("Username already exists! Please try again.");
+                    username = "";
+                    Utils.threadSleep(2000);
+                    Utils.clearConsole();
+                    continue;
+                }
+            }
+
+            // validate pin
+            System.out.print("Enter PIN: ");
+            pin = scanner.nextLine();
+
+            if (pin.isEmpty()) {
+                System.out.println("Invalid Input! Please enter a value.");
+                Utils.threadSleep();
+                Utils.clearConsole();
+                continue;
+            }
+
+            if(pin.length() != 4) {
+                System.out.println("PIN must be 4-digits");
+                Utils.threadSleep(2000);
+                Utils.clearConsole();
+                continue;
+            }
+
+            break;
+        }
+
+        String userID = UserService.generateUserID();
+        double balance = 0.0;
+        String status = UserService.statusIntToString(UserService.pending);
+
+        UserAccount user = new UserAccount(firstName, lastName, age, username, pin, userID, balance, status);
+        UserService.createAccount(user);
+
+        System.out.println();
+        System.out.println("Account has been created successfully.");
+        System.out.println("Please wait for approval by the administrator.");
+        Utils.threadSleep(3000);
     }
 }
