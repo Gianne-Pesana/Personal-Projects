@@ -56,11 +56,9 @@ public class UserRepository {
 
     }
 
-
-
     private UserAccount parseCSV(String line) {
         String[] parts = line.split("\\|");
-        if (parts.length != 8) {
+        if (parts.length != 9) {
             System.out.println("Error in parsing CSV data.");
             return null;
         }
@@ -68,11 +66,12 @@ public class UserRepository {
                 parts[0], // User ID
                 parts[1], // First Name
                 parts[2], // Last Name
-                parts[3], // Username
-                parts[4], // pin
-                Double.parseDouble(parts[5]), // Balance
-                UserStatus.valueOf(parts[6]), // Status
-                parts[7] // Creation Date
+                Integer.parseInt(parts[3]), // Age
+                parts[4], // Username
+                parts[5], // pin
+                Double.parseDouble(parts[6]), // Balance
+                UserStatus.valueOf(parts[7]), // Status
+                parts[8] // Creation Date
         );
     }
 

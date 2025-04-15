@@ -4,16 +4,18 @@ public class UserAccount {
     private String userID;
     private String firstName;
     private String lastName;
+    private int age;
     private String username;
     private String pin;
     private double balance;
     private UserStatus status;
     private String creationDate;
 
-    public UserAccount(String userID, String firstName, String lastName, String username, String pin, double balance, UserStatus status, String creationDate) {
+    public UserAccount(String userID, String firstName, String lastName, int age, String username, String pin, double balance, UserStatus status, String creationDate) {
         this.userID = userID;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.age = age;
         this.username = username;
         this.pin = pin;
         this.balance = balance;
@@ -43,6 +45,14 @@ public class UserAccount {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 
     public String getUsername() {
